@@ -582,19 +582,30 @@ def _render_report_html(portfolio: dict, today: str) -> str:
 
 
 def _html_to_png(html: str, output_path: str) -> None:
-    """用 Playwright 把 HTML 渲染为 PNG。"""
-    from playwright.sync_api import sync_playwright
+    """用 Playwright 把 HTML 渲染为 PNG。
 
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        try:
-            page = browser.new_page(viewport={"width": 1040, "height": 800}, device_scale_factor=2)
-            page.set_content(html, wait_until="load")
-            page.wait_for_timeout(300)
-            # 只截取内容区域（去掉 body 的 padding 外的空白）
-            page.locator(".container").screenshot(path=output_path, omit_background=False)
-        finally:
-            browser.close()
+    显式在独立 worker 线程里跑 sync_playwright：FastMCP tool 可能在 asyncio
+    event loop 上下文里被调用，而 sync API 拒绝在 running loop 的线程里启动。
+    Worker 线程没有 running loop，所以 sync API 能正常初始化。
+    """
+    import concurrent.futures
+
+    def _render() -> None:
+        from playwright.sync_api import sync_playwright
+
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            try:
+                page = browser.new_page(viewport={"width": 1040, "height": 800}, device_scale_factor=2)
+                page.set_content(html, wait_until="load")
+                page.wait_for_timeout(300)
+                # 只截取内容区域（去掉 body 的 padding 外的空白）
+                page.locator(".container").screenshot(path=output_path, omit_background=False)
+            finally:
+                browser.close()
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+        executor.submit(_render).result()
 
 
 @mcp.tool(
