@@ -101,6 +101,8 @@ The PNG lands in `data/reports/portfolio_<YYYY-MM-DD>.png`.
 
 ## Hermes integration (WeChat daily report)
 
+> Full walkthrough: **[docs/SETUP.md](docs/SETUP.md)** — covers installing Hermes, pairing WeChat, seeding the portfolio, wiring the MCP server, and scheduling the daily cron.
+
 Add this under `mcp_servers` in `~/.hermes/config.yaml`:
 
 ```yaml
