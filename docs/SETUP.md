@@ -358,6 +358,8 @@ Preview the query at `https://www.ebay.com/sch/i.html?_nkw=<your-query>&LH_Sold=
 | `rookiecard` tools missing in Hermes | MCP config not reloaded | `hermes gateway restart` |
 | PNG is blank / missing fonts | Playwright Chromium not installed | `playwright install chromium` |
 | `ModuleNotFoundError: rookiecard` | Wrong `PYTHONPATH` in Hermes config | Use absolute path, no `~` |
+| Bot replies with text but image never arrives | `WeixinAdapter.send_image_file` param mismatch (fixed upstream in Hermes `902d6b97`, 2026-04-17) | `cd ~/.hermes/hermes-agent && git pull` — ensure commit ≥ `902d6b97` |
+| `Non-streaming API call timed out after 300s` in cron output | Gateway streaming disabled → LLM backend stalls go undetected until 300s threshold | In `~/.hermes/config.yaml` set `streaming.enabled: true`, then `launchctl kickstart -k gui/$(id -u)/ai.hermes.gateway` |
 
 For anything else: `hermes doctor` and the gateway logs (`~/.hermes/logs/`) are your friends.
 
